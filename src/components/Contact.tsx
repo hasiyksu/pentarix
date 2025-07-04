@@ -1,15 +1,19 @@
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { motion } from "framer-motion";
 import { useInView } from "react-intersection-observer";
 import { MapPin, Phone, Mail, Calendar, Send } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+
+import emailjs from "emailjs-com";
 
 const Contact = () => {
   const [ref, inView] = useInView({
     triggerOnce: true,
     threshold: 0.1,
   });
+
+  const formRef = useRef<HTMLFormElement>(null);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -36,22 +40,48 @@ const Contact = () => {
       return;
     }
 
-    toast({
-      title: "Message Sent!",
-      description: "Thank you for contacting us. We'll get back to you soon!",
-    });
+    const SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID;
+const TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
+const PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
 
-    // Reset form
-    setFormData({
-      name: "",
-      email: "",
-      company: "",
-      service: "",
-      message: "",
-      meetingDate: "",
-      meetingTime: "",
-    });
+
+    // ✉️ Send email with EmailJS
+    emailjs
+      .sendForm(
+         SERVICE_ID,
+      TEMPLATE_ID,
+    formRef.current!,
+    PUBLIC_KEY
+      )
+      .then(
+        () => {
+          toast({
+            title: "Message Sent!",
+            description: "Thank you for contacting us. We'll get back to you soon!",
+          });
+
+          // Reset form
+          setFormData({
+            name: "",
+            email: "",
+            company: "",
+            service: "",
+            message: "",
+            meetingDate: "",
+            meetingTime: "",
+          });
+        },
+        (error) => {
+          toast({
+            title: "Email Failed",
+            description: "Something went wrong. Please try again later.",
+            variant: "destructive",
+          });
+          console.error("EmailJS error:", error);
+        }
+      );
   };
+  
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setFormData({
@@ -87,6 +117,9 @@ const Contact = () => {
     "Custom Management Systems",
     "Other",
   ];
+
+
+
 
   return (
     <section id="contact" className="py-20 bg-slate-800 relative overflow-hidden">
@@ -163,7 +196,7 @@ const Contact = () => {
             animate={inView ? { opacity: 1, x: 0 } : {}}
             transition={{ duration: 0.6, delay: 0.4 }}
           >
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div>
                   <label htmlFor="name" className="block text-white font-medium mb-2">

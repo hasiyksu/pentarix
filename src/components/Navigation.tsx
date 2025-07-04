@@ -29,7 +29,7 @@ const Navigation = () => {
     },
     {
       name: "Facebook",
-      href: "https://facebook.com/pentarixlabs",
+      href: "https://www.facebook.com/share/1A5LtSj6R4/",
       icon: <Facebook size={20} />,
     },
   ];
